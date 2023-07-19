@@ -1,24 +1,68 @@
 import {IonContent, IonHeader, IonPage, IonTitle, IonToolbar} from "@ionic/react"
+import React from "react"
 import clsx from "clsx"
 import dayjs from "dayjs"
 import ExploreContainer from "../components/ExploreContainer"
 import {Icon} from "@iconify/react"
 
+interface IDateRange {
+  startDate: string
+  endDate: string
+}
+
 const Home: React.FC = () => {
-  const dates = [
-    {date: dayjs().format(), totalHrs: "24:00", shift: 5},
-    {date: dayjs().add(1, "day").format(), totalHrs: "24:00", shift: 5},
-    {date: dayjs().add(2, "day").format(), totalHrs: "24:00", shift: 5},
-    {date: dayjs().add(3, "day").format(), totalHrs: "24:00", shift: 5},
-    {date: dayjs().add(4, "day").format(), totalHrs: "24:00", shift: 5},
-    {date: dayjs().add(5, "day").format(), totalHrs: "24:00", shift: 5},
-    {date: dayjs().add(6, "day").format(), totalHrs: "24:00", shift: 5},
-    {date: dayjs().add(7, "day").format(), totalHrs: "24:00", shift: 5},
-    {date: dayjs().add(8, "day").format(), totalHrs: "24:00", shift: 5},
-    {date: dayjs().add(9, "day").format(), totalHrs: "24:00", shift: 5},
-    {date: dayjs().add(10, "day").format(), totalHrs: "24:00", shift: 5},
-    {date: dayjs().add(11, "day").format(), totalHrs: "24:00", shift: 5}
-  ]
+  const [weekDate, setWeekDate] = React.useState<IDateRange>({
+    startDate: dayjs().startOf("week").format("YYYY-MM-DD"),
+    endDate: dayjs().endOf("week").format("YYYY-MM-DD")
+  })
+
+  const handleNextWeekChange = (e: any) => {
+    const {endDate: prevEndDate} = weekDate
+    let startDate = dayjs(prevEndDate).add(1, "week").startOf("week").format("YYYY-MM-DD")
+    let endDate = dayjs(prevEndDate).add(1, "week").endOf("week").format("YYYY-MM-DD")
+    setWeekDate({startDate, endDate})
+  }
+
+  const handlePrevWeekChange = (e: any) => {
+    const {endDate: prevEndDate} = weekDate
+    let startDate = dayjs(prevEndDate).subtract(1, "week").startOf("week").format("YYYY-MM-DD")
+    let endDate = dayjs(prevEndDate).subtract(1, "week").endOf("week").format("YYYY-MM-DD")
+    setWeekDate({startDate, endDate})
+  }
+
+  const generateDates = (startDate: string, endDate: string) => {
+    let dates = [{}]
+    // const dates = [
+    //   {date: dayjs().format(), totalHrs: "24:00", shift: 5},
+    //   {date: dayjs().add(1, "day").format(), totalHrs: "24:00", shift: 5},
+    //   {date: dayjs().add(2, "day").format(), totalHrs: "24:00", shift: 5},
+    //   {date: dayjs().add(3, "day").format(), totalHrs: "24:00", shift: 5},
+    //   {date: dayjs().add(4, "day").format(), totalHrs: "24:00", shift: 5},
+    //   {date: dayjs().add(5, "day").format(), totalHrs: "24:00", shift: 5},
+    //   {date: dayjs().add(6, "day").format(), totalHrs: "24:00", shift: 5},
+    //   {date: dayjs().add(7, "day").format(), totalHrs: "24:00", shift: 5},
+    //   {date: dayjs().add(8, "day").format(), totalHrs: "24:00", shift: 5},
+    //   {date: dayjs().add(9, "day").format(), totalHrs: "24:00", shift: 5},
+    //   {date: dayjs().add(10, "day").format(), totalHrs: "24:00", shift: 5},
+    //   {date: dayjs().add(11, "day").format(), totalHrs: "24:00", shift: 5}
+    // ]
+
+    let currDate = startDate
+
+    while (dayjs(currDate).isSame(endDate) || dayjs(currDate).isBefore(endDate)) {
+      dates.push({date: currDate, totalHrs: "24:00", shift: 5})
+      currDate = dayjs(currDate).add(1, "day").format("YYYY-MM-DD")
+    }
+    return dates
+  }
+
+  const [dates, setDates] = React.useState<any>(generateDates(dayjs().startOf("week").format("YYYY-MM-DD"), dayjs().endOf("week").format("YYYY-MM-DD")))
+  React.useEffect(() => {
+    if (weekDate.startDate) {
+      setDates(generateDates(weekDate.startDate, weekDate.endDate))
+    }
+  }, [weekDate])
+
   const employees = [
     {
       name: "Steve smith",
@@ -116,8 +160,6 @@ const Home: React.FC = () => {
     }
 
     const ShiftCard: React.Fc = ({employeeDate, datesDate}) => {
-      console.log("employeeDate :::", employeeDate)
-      console.log("datesDate :::", datesDate)
       return (
         <>
           {employeeDate === datesDate ? (
@@ -140,14 +182,14 @@ const Home: React.FC = () => {
               <div key={row} className="flex  border border-t-0 border-b-2 h-[30%]">
                 {employees.map((empValue: any, col: number) => {
                   return (
-                    <div className={clsx("flex border  border-l-0  border-r-2 border-b-0 w-[50%]", {"border-t-2": row === 0, "border-t-0": row > 0})}>
+                    <div key={col} className={clsx("flex border  border-l-0  border-r-2 border-b-0 w-[50%]", {"border-t-2": row === 0, "border-t-0": row > 0})}>
                       {row === 0 && col === 0 && <ViewByEmployees />}
                       {row === 0 && col > 0 && <EmployeeCard {...empValue} />}
                       {row > 0 && col === 0 && <DateList {...datesValue} />}
                       {row > 0 && col > 0 && (
                         <>
                           {empValue.dates.map((employeeDate: string, index: number) => {
-                            return <ShiftCard employeeDate={dayjs(employeeDate).format("YYYY-MM-DD")} datesDate={dayjs(datesValue.date).format("YYYY-MM-DD")} />
+                            return <ShiftCard key={index} employeeDate={dayjs(employeeDate).format("YYYY-MM-DD")} datesDate={dayjs(datesValue.date).format("YYYY-MM-DD")} />
                           })}
                         </>
                       )}
@@ -168,9 +210,9 @@ const Home: React.FC = () => {
         <div className="flex justify-between items-center w-full ">
           <div className="flex gap-5 items-center m-5 text-sm ">
             <div className="border rounded-[15px] flex w-full items-center ">
-              <Icon icon="ic:round-chevron-left" color="rgba(66, 82, 110, 0.5019607843137255)" width={40} height={35} />
-              <span className="mb-0.5">Oct 31 - Nov 06 2022</span>
-              <Icon icon="ic:round-chevron-right" color="rgba(66, 82, 110, 0.5019607843137255)" width={40} height={35} />
+              <Icon icon="ic:round-chevron-left" color="rgba(66, 82, 110, 0.5019607843137255)" width={40} height={35} onClick={handlePrevWeekChange} />
+              <span className="mb-0.5">{`${dayjs(weekDate.startDate).format("MMM DD")} - ${dayjs(weekDate.endDate).format("MMM DD YYYY")}`}</span>
+              <Icon icon="ic:round-chevron-right" color="rgba(66, 82, 110, 0.5019607843137255)" width={40} height={35} onClick={handleNextWeekChange} />
             </div>
             <Icon icon="ph:swap" color="#007dff" width={80} className="-ml-3 h-6" />
           </div>
