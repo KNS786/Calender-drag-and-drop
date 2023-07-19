@@ -25,28 +25,28 @@ const Home: React.FC = () => {
       initial: "CG",
       totalHrs: "24:00",
       shift: "3",
-      date: dayjs().format()
+      dates: [dayjs().format()]
     },
     {
       name: "Henry",
       initial: "HM",
       totalHrs: "24:00",
       shift: "3",
-      date: dayjs().add(1, "day").format()
+      dates: [dayjs().add(1, "day").format(), dayjs().add(3, "day").format()]
     },
     {
       name: "Dhoni",
       initial: "MS",
       totalHrs: "24:00",
       shift: "3",
-      date: dayjs().add(2, "day").format()
+      dates: [dayjs().add(2, "day").format(), dayjs().add(5, "day").format()]
     },
     {
       name: " Virat",
       initial: "VK",
       totalHrs: "24:00",
       shift: "3",
-      date: dayjs().format()
+      dates: [dayjs().add(10, "day").format()]
     }
   ]
 
@@ -138,14 +138,22 @@ const Home: React.FC = () => {
           {dates.map((datesValue: any, row: number) => {
             return (
               <div key={row} className="flex  border border-t-0 border-b-2 h-[30%]">
-                {employees.map((value: any, col: number) => (
-                  <div className={clsx("flex border  border-l-0  border-r-2 border-b-0 w-[50%]", {"border-t-2": row === 0, "border-t-0": row > 0})}>
-                    {row === 0 && col === 0 && <ViewByEmployees />}
-                    {row === 0 && col > 0 && <EmployeeCard {...value} />}
-                    {row > 0 && col === 0 && <DateList {...datesValue} />}
-                    {row > 0 && col > 0 && <ShiftCard employeeDate={dayjs(value.date).format("YYYY-MM-DD")} datesDate={dayjs(datesValue.date).format("YYYY-MM-DD")} />}
-                  </div>
-                ))}
+                {employees.map((empValue: any, col: number) => {
+                  return (
+                    <div className={clsx("flex border  border-l-0  border-r-2 border-b-0 w-[50%]", {"border-t-2": row === 0, "border-t-0": row > 0})}>
+                      {row === 0 && col === 0 && <ViewByEmployees />}
+                      {row === 0 && col > 0 && <EmployeeCard {...empValue} />}
+                      {row > 0 && col === 0 && <DateList {...datesValue} />}
+                      {row > 0 && col > 0 && (
+                        <>
+                          {empValue.dates.map((employeeDate: string, index: number) => {
+                            return <ShiftCard employeeDate={dayjs(employeeDate).format("YYYY-MM-DD")} datesDate={dayjs(datesValue.date).format("YYYY-MM-DD")} />
+                          })}
+                        </>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )
           })}
