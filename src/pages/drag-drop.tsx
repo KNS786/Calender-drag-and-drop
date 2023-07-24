@@ -17,6 +17,7 @@ const DragAndDrop: React.Fc = () => {
   }
 
   const handleReOrderTable = (result: any) => {
+    console.log("result ::", result)
     const {source, destination} = result
     const data = Array.from(table)
     const [item] = data.splice(source.index, 1)

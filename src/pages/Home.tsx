@@ -4,6 +4,7 @@ import clsx from "clsx"
 import dayjs from "dayjs"
 import ExploreContainer from "../components/ExploreContainer"
 import {Icon} from "@iconify/react"
+import {DragDropContext, Droppable, Draggable} from "react-beautiful-dnd"
 
 interface IDateRange {
   startDate: string
@@ -177,28 +178,49 @@ const Home: React.FC = () => {
     return (
       <div className="flex w-full h-[90%]">
         <div className="flex flex-col w-full ">
-          {dates.map((datesValue: any, row: number) => {
-            return (
-              <div key={row} className="flex  border border-t-0 border-b-2 h-[30%]">
-                {employees.map((empValue: any, col: number) => {
-                  return (
-                    <div key={col} className={clsx("flex border  border-l-0  border-r-2 border-b-0 w-[50%]", {"border-t-2": row === 0, "border-t-0": row > 0})}>
-                      {row === 0 && col === 0 && <ViewByEmployees />}
-                      {row === 0 && col > 0 && <EmployeeCard {...empValue} />}
-                      {row > 0 && col === 0 && <DateList {...datesValue} />}
-                      {row > 0 && col > 0 && (
-                        <>
-                          {empValue.dates.map((employeeDate: string, index: number) => {
-                            return <ShiftCard key={index} employeeDate={dayjs(employeeDate).format("YYYY-MM-DD")} datesDate={dayjs(datesValue.date).format("YYYY-MM-DD")} />
-                          })}
-                        </>
-                      )}
+          <DragDropContext
+            onDragEnd={(result: any) => {
+              console.log("result :::", result)
+            }}
+          >
+            {dates.map((datesValue: any, row: number) => {
+              return (
+                <Droppable key={`layer-${row}`} droppableId={`layer-${row}`}>
+                  {(provided) => (
+                    <div {...provided.droppableProps} ref={provided.innerRef} className="flex  border border-t-0 border-b-2 h-[30%]">
+                      {employees.map((empValue: any, col: number) => {
+                        return (
+                          <div key={`row-${col}`} className={clsx("flex border  border-l-0  border-r-2 border-b-0 w-[50%]", {"border-t-2": row === 0, "border-t-0": row > 0})}>
+                            {row === 0 && col === 0 && <ViewByEmployees />}
+                            {row === 0 && col > 0 && <EmployeeCard {...empValue} />}
+                            {row > 0 && col === 0 && <DateList {...datesValue} />}
+                            {row > 0 && col > 0 && (
+                              <>
+                                {empValue.dates.map((employeeDate: string, index: number) => {
+                                  const cardPosition = `'{"cardIndex":${index},"row":${row},"col":${col}}'`
+
+                                  return (
+                                    <Draggable key={cardPosition} draggableId={cardPosition} index={index}>
+                                      {(provided) => (
+                                        <div {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef} className="flex">
+                                          <ShiftCard key={index} employeeDate={dayjs(employeeDate).format("YYYY-MM-DD")} datesDate={dayjs(datesValue.date).format("YYYY-MM-DD")} />
+                                        </div>
+                                      )}
+                                    </Draggable>
+                                  )
+                                })}
+                              </>
+                            )}
+                          </div>
+                        )
+                      })}
+                      {provided.placeholder}
                     </div>
-                  )
-                })}
-              </div>
-            )
-          })}
+                  )}
+                </Droppable>
+              )
+            })}
+          </DragDropContext>
         </div>
       </div>
     )
