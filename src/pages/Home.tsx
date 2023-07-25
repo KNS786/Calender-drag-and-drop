@@ -91,7 +91,7 @@ const Home: React.FC = () => {
       initial: "VK",
       totalHrs: "24:00",
       shift: "3",
-      dates: [dayjs().add(10, "day").format()]
+      dates: [dayjs().add(7, "day").format()]
     }
   ]
 
@@ -170,7 +170,9 @@ const Home: React.FC = () => {
                 9.00a - 5.00p <span className="text-[#636363CC] font-normal">(8h)</span>
               </span>
             </div>
-          ) : null}
+          ) : (
+            <h1>hello</h1>
+          )}
         </>
       )
     }
@@ -185,39 +187,46 @@ const Home: React.FC = () => {
           >
             {dates.map((datesValue: any, row: number) => {
               return (
-                <Droppable key={`layer-${row}`} droppableId={`layer-${row}`}>
-                  {(provided) => (
-                    <div {...provided.droppableProps} ref={provided.innerRef} className="flex  border border-t-0 border-b-2 h-[30%]">
-                      {employees.map((empValue: any, col: number) => {
-                        return (
-                          <div key={`row-${col}`} className={clsx("flex border  border-l-0  border-r-2 border-b-0 w-[50%]", {"border-t-2": row === 0, "border-t-0": row > 0})}>
-                            {row === 0 && col === 0 && <ViewByEmployees />}
-                            {row === 0 && col > 0 && <EmployeeCard {...empValue} />}
-                            {row > 0 && col === 0 && <DateList {...datesValue} />}
-                            {row > 0 && col > 0 && (
-                              <>
-                                {empValue.dates.map((employeeDate: string, index: number) => {
-                                  const cardPosition = `'{"cardIndex":${index},"row":${row},"col":${col}}'`
+                <div key={row} className="flex  border border-t-0 border-b-2 h-[30%]">
+                  {employees.map((empValue: any, col: number) => {
+                    return (
+                      <div key={`row-${col}`} className={clsx("flex border  border-l-0  border-r-2 border-b-0 w-[50%]", {"border-t-2": row === 0, "border-t-0": row > 0})}>
+                        {row === 0 && col === 0 && <ViewByEmployees />}
+                        {row === 0 && col > 0 && <EmployeeCard {...empValue} />}
+                        {row > 0 && col === 0 && <DateList {...datesValue} />}
+                        {row > 0 && col > 0 && (
+                          //   <Droppable key={`row:${row}-col:${col}`} droppableId={`row:${row}-col:${col}`}>
+                          //     {(provided) => (
+                          <div key={`row:${row}-col:${col}-layers`} className="flex">
+                            {empValue.dates.map((employeeDate: string, index: number) => {
+                              const cardPosition = `'{"cardIndex":${index},"row":${row},"col":${col}}'`
 
-                                  return (
-                                    <Draggable key={cardPosition} draggableId={cardPosition} index={index}>
-                                      {(provided) => (
-                                        <div {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef} className="flex">
-                                          <ShiftCard key={index} employeeDate={dayjs(employeeDate).format("YYYY-MM-DD")} datesDate={dayjs(datesValue.date).format("YYYY-MM-DD")} />
-                                        </div>
-                                      )}
-                                    </Draggable>
-                                  )
-                                })}
-                              </>
-                            )}
+                              return (
+                                <Droppable key={`cardIndx-${index}-row-${row}-col-${col}`} droppableId={`cardIndx-${index}-row-${row}-col-${col}`}>
+                                  {(provided) => (
+                                    <div {...provided.droppableProps} ref={provided.innerRef} className="flex">
+                                      <Draggable key={cardPosition} draggableId={cardPosition} index={index}>
+                                        {(datas) => (
+                                          <div {...datas.draggableProps} {...datas.dragHandleProps} ref={datas.innerRef} className="flex">
+                                            <ShiftCard key={index} employeeDate={dayjs(employeeDate).format("YYYY-MM-DD")} datesDate={dayjs(datesValue.date).format("YYYY-MM-DD")} />
+                                          </div>
+                                        )}
+                                      </Draggable>
+                                      {provided.placeholder}
+                                    </div>
+                                  )}
+                                </Droppable>
+                              )
+                            })}
+                            {/* {provided.placeholder} */}
                           </div>
-                        )
-                      })}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
+                          //     )}
+                          //   </Droppable>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
               )
             })}
           </DragDropContext>
