@@ -6,12 +6,25 @@ import ExploreContainer from "../components/ExploreContainer"
 import {Icon} from "@iconify/react"
 import {DragDropContext, Droppable, Draggable} from "react-beautiful-dnd"
 
+//hook
+import {useDate} from "./hooks/useDate"
+
 interface IDateRange {
   startDate: string
   endDate: string
 }
 
 const Home: React.FC = () => {
+  //   const {findEmpShiftDateForCell, isVisited} = useDate()
+  const findEmpShiftDateForCell = (dates: any, employeeDate: any) => {
+    console.log("dates :::", dates)
+    console.log("employeeDate ::", employeeDate)
+    const findEmpShift = dates.find((value) => dayjs(value).isSame(employeeDate))
+    console.log("findEmpShift ::", findEmpShift)
+    //   setIsVisited(!!findEmpShift)
+    return !!findEmpShift
+  }
+
   const [weekDate, setWeekDate] = React.useState<IDateRange>({
     startDate: dayjs().startOf("week").format("YYYY-MM-DD"),
     endDate: dayjs().endOf("week").format("YYYY-MM-DD")
@@ -70,28 +83,28 @@ const Home: React.FC = () => {
       initial: "CG",
       totalHrs: "24:00",
       shift: "3",
-      dates: [dayjs().format()]
+      dates: [dayjs().format("YYYY-MM-DD")]
     },
     {
       name: "Henry",
       initial: "HM",
       totalHrs: "24:00",
       shift: "3",
-      dates: [dayjs().add(1, "day").format(), dayjs().add(3, "day").format()]
+      dates: [dayjs().add(1, "day").format("YYYY-MM-DD"), dayjs().add(2, "day").format("YYYY-MM-DD")]
     },
     {
       name: "Dhoni",
       initial: "MS",
       totalHrs: "24:00",
       shift: "3",
-      dates: [dayjs().add(2, "day").format(), dayjs().add(5, "day").format()]
+      dates: [dayjs().add(2, "day").format("YYYY-MM-DD")]
     },
     {
       name: " Virat",
       initial: "VK",
       totalHrs: "24:00",
       shift: "3",
-      dates: [dayjs().add(7, "day").format()]
+      dates: [dayjs().add(3, "day").format("YYYY-MM-DD")]
     }
   ]
 
@@ -160,20 +173,30 @@ const Home: React.FC = () => {
       )
     }
 
-    const ShiftCard: React.Fc = ({employeeDate, datesDate}) => {
+    // const ShiftCard: React.Fc = ({employeeDate, datesDate}) => {
+    //   return (
+    //     <>
+    //       {employeeDate === datesDate ? (
+    //         <div className="border border-[#FFD702] flex w-[95%] h-full m-1 rounded-[5px]">
+    //           <span className="w-[5px] bg-[#FFD702] rounded-l-[5px] h-full"></span>
+    //           <span className="text-[#3D3D3D] font-semibold rounded-r-[5px] pl-2">
+    //             9.00a - 5.00p <span className="text-[#636363CC] font-normal">(8h)</span>
+    //           </span>
+    //         </div>
+    //       ) : (
+    //         <h1>hello</h1>
+    //       )}
+    //     </>
+    //   )
+    // }
+    const ShiftCard: React.Fc = () => {
       return (
-        <>
-          {employeeDate === datesDate ? (
-            <div className="border border-[#FFD702] flex w-[95%] h-full m-1 rounded-[5px]">
-              <span className="w-[5px] bg-[#FFD702] rounded-l-[5px] h-full"></span>
-              <span className="text-[#3D3D3D] font-semibold rounded-r-[5px] pl-2">
-                9.00a - 5.00p <span className="text-[#636363CC] font-normal">(8h)</span>
-              </span>
-            </div>
-          ) : (
-            <h1>hello</h1>
-          )}
-        </>
+        <div className="border border-[#FFD702] flex w-[95%] h-full m-1 rounded-[5px]">
+          <span className="w-[5px] bg-[#FFD702] rounded-l-[5px] h-full"></span>
+          <span className="text-[#3D3D3D] font-semibold rounded-r-[5px] pl-2">
+            9.00a - 5.00p <span className="text-[#636363CC] font-normal">(8h)</span>
+          </span>
+        </div>
       )
     }
 
@@ -195,10 +218,35 @@ const Home: React.FC = () => {
                         {row === 0 && col > 0 && <EmployeeCard {...empValue} />}
                         {row > 0 && col === 0 && <DateList {...datesValue} />}
                         {row > 0 && col > 0 && (
-                          //   <Droppable key={`row:${row}-col:${col}`} droppableId={`row:${row}-col:${col}`}>
-                          //     {(provided) => (
                           <div key={`row:${row}-col:${col}-layers`} className="flex">
-                            {empValue.dates.map((employeeDate: string, index: number) => {
+                            {findEmpShiftDateForCell(empValue.dates, datesValue.date) ? (
+                              <>
+                                {empValue.dates.map((employeeDate: string, index: number) => {
+                                  const cardPosition = `'{"cardIndex":${index},"row":${row},"col":${col}}'`
+
+                                  return (
+                                    <Droppable key={`cardIndx-${index}-row-${row}-col-${col}`} droppableId={`cardIndx-${index}-row-${row}-col-${col}`}>
+                                      {(provided) => (
+                                        <div {...provided.droppableProps} ref={provided.innerRef} className="flex">
+                                          <Draggable key={cardPosition} draggableId={cardPosition} index={index}>
+                                            {(datas) => (
+                                              <div {...datas.draggableProps} {...datas.dragHandleProps} ref={datas.innerRef} className="flex">
+                                                <ShiftCard key={index} employeeDate={dayjs(employeeDate).format("YYYY-MM-DD")} datesDate={dayjs(datesValue.date).format("YYYY-MM-DD")} />
+                                              </div>
+                                            )}
+                                          </Draggable>
+                                          {provided.placeholder}
+                                        </div>
+                                      )}
+                                    </Droppable>
+                                  )
+                                })}
+                              </>
+                            ) : (
+                              <h1>hover</h1>
+                            )}
+
+                            {/* {empValue.dates.map((employeeDate: string, index: number) => {
                               const cardPosition = `'{"cardIndex":${index},"row":${row},"col":${col}}'`
 
                               return (
@@ -217,11 +265,8 @@ const Home: React.FC = () => {
                                   )}
                                 </Droppable>
                               )
-                            })}
-                            {/* {provided.placeholder} */}
+                            })} */}
                           </div>
-                          //     )}
-                          //   </Droppable>
                         )}
                       </div>
                     )
