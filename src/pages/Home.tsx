@@ -17,12 +17,9 @@ interface IDateRange {
 const Home: React.FC = () => {
   //   const {findEmpShiftDateForCell, isVisited} = useDate()
   const findEmpShiftDateForCell = (dates: any, employeeDate: any) => {
-    console.log("dates :::", dates)
-    console.log("employeeDate ::", employeeDate)
     const findEmpShift = dates.find((value) => dayjs(value).isSame(employeeDate))
-    console.log("findEmpShift ::", findEmpShift)
-    //   setIsVisited(!!findEmpShift)
-    return !!findEmpShift
+    const findEmpShiftIndex = dates.findIndex((value) => dayjs(value).isSame(employeeDate))
+    return {findEmpShift: !!findEmpShift, findEmpShiftIndex}
   }
 
   const [weekDate, setWeekDate] = React.useState<IDateRange>({
@@ -77,7 +74,7 @@ const Home: React.FC = () => {
     }
   }, [weekDate])
 
-  const employees = [
+  const responseData = [
     {
       name: "Steve smith",
       initial: "CG",
@@ -107,6 +104,8 @@ const Home: React.FC = () => {
       dates: [dayjs().add(3, "day").format("YYYY-MM-DD")]
     }
   ]
+
+  const [employees, setEmployees] = React.useState<any>(responseData)
 
   const Calender: React.FC = ({dates, employees, align = "vertical"}) => {
     let Table = {
@@ -200,18 +199,30 @@ const Home: React.FC = () => {
       )
     }
 
+    const handleDragEnd = (result: any) => {
+      const {source, destination} = result
+      if (destination) {
+        const startPosition = JSON.parse(source.droppableId)
+        const targetPosition = JSON.parse(destination.droppableId)
+
+        const employeeList = Array.from(employees)
+        const [movedItem] = employeeList[startPosition.col].dates.splice(startPosition.cardIndx, 1)
+        const reOrderItems = employeeList[targetPosition.col].dates.push(targetPosition.date)
+        setEmployees(employeeList)
+      }
+    }
+
     return (
       <div className="flex w-full h-[90%]">
         <div className="flex flex-col w-full ">
-          <DragDropContext
-            onDragEnd={(result: any) => {
-              console.log("result :::", result)
-            }}
-          >
+          <DragDropContext onDragEnd={handleDragEnd}>
             {dates.map((datesValue: any, row: number) => {
               return (
                 <div key={row} className="flex  border border-t-0 border-b-2 h-[30%]">
                   {employees.map((empValue: any, col: number) => {
+                    const {findEmpShift, findEmpShiftIndex} = findEmpShiftDateForCell(empValue.dates, datesValue.date)
+                    const cardPosition = `{"cardIndex":${findEmpShiftIndex},"row":${row},"col":${col},"date":"${datesValue.date}"}`
+
                     return (
                       <div key={`row-${col}`} className={clsx("flex border  border-l-0  border-r-2 border-b-0 w-[50%]", {"border-t-2": row === 0, "border-t-0": row > 0})}>
                         {row === 0 && col === 0 && <ViewByEmployees />}
@@ -219,7 +230,39 @@ const Home: React.FC = () => {
                         {row > 0 && col === 0 && <DateList {...datesValue} />}
                         {row > 0 && col > 0 && (
                           <div key={`row:${row}-col:${col}-layers`} className="flex">
-                            {findEmpShiftDateForCell(empValue.dates, datesValue.date) ? (
+                            {findEmpShift ? (
+                              <Droppable key={`{"cardIndx":${findEmpShiftIndex},"row":${row},"col":${col},"date":"${datesValue.date}"}`} droppableId={`{"cardIndx":${findEmpShiftIndex},"row":${row},"col":${col},"date":"${datesValue.date}"}`}>
+                                {(provided) => (
+                                  <div {...provided.droppableProps} ref={provided.innerRef} className="flex">
+                                    <Draggable key={cardPosition} draggableId={cardPosition} index={findEmpShiftIndex}>
+                                      {(datas) => (
+                                        <div {...datas.draggableProps} {...datas.dragHandleProps} ref={datas.innerRef} className="flex">
+                                          <ShiftCard />
+                                        </div>
+                                      )}
+                                    </Draggable>
+                                    {provided.placeholder}
+                                  </div>
+                                )}
+                              </Droppable>
+                            ) : (
+                              <Droppable key={`{"cardIndx":${findEmpShiftIndex},"row":${row},"col":${col},"date":"${datesValue.date}"}`} droppableId={`{"cardIndx":${findEmpShiftIndex},"row":${row},"col":${col},"date":"${datesValue.date}"}`}>
+                                {(provided) => (
+                                  <div {...provided.droppableProps} ref={provided.innerRef}>
+                                    <Draggable key={cardPosition} draggableId={cardPosition} index={findEmpShiftIndex}>
+                                      {(datas) => (
+                                        <div {...datas.draggableProps} {...datas.dragHandleProps} ref={datas.innerRef} className="flex">
+                                          <h1>hello</h1>
+                                        </div>
+                                      )}
+                                    </Draggable>
+                                    {provided.placeholder}
+                                  </div>
+                                )}
+                              </Droppable>
+                            )}
+
+                            {/* {findEmpShiftDateForCell(empValue.dates, datesValue.date) ? (
                               <>
                                 {empValue.dates.map((employeeDate: string, index: number) => {
                                   const cardPosition = `'{"cardIndex":${index},"row":${row},"col":${col}}'`
@@ -244,7 +287,7 @@ const Home: React.FC = () => {
                               </>
                             ) : (
                               <h1>hover</h1>
-                            )}
+                            )} */}
 
                             {/* {empValue.dates.map((employeeDate: string, index: number) => {
                               const cardPosition = `'{"cardIndex":${index},"row":${row},"col":${col}}'`
